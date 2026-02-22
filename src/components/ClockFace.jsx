@@ -1,12 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { calculateClockAngles, isSnackTime, getMinutesFromAngle } from '../utils/GameLogic';
 
-const ClockFace = ({ currentHour, currentMinute, onTimeChange, soundEnabled = true }) => {
+const ClockFace = ({ 
+  currentHour, 
+  currentMinute, 
+  onTimeChange, 
+  soundEnabled = true,
+  scaffoldingLevel = null,
+  ariaLabel = "Interactive clock face"
+}) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showSnackTime, setShowSnackTime] = useState(false);
-  const [selectedHand, setSelectedHand] = useState(null); // 'hour' or 'minute'
+  const [selectedHand, setSelectedHand] = useState(null);
   const [isHandSelected, setIsHandSelected] = useState(false);
+  const [draggedHand, setDraggedHand] = useState(null);
   const clockRef = useRef(null);
   
   const clockRadius = 120;
@@ -15,8 +23,68 @@ const ClockFace = ({ currentHour, currentMinute, onTimeChange, soundEnabled = tr
 
   const { hourAngle, minuteAngle } = calculateClockAngles(currentHour, currentMinute);
 
-  // Play gentle chime sound
-  const playChime = (frequency = 523.25, duration = 0.3) => {
+  // Enhanced drag handlers with accessibility
+  const handleDragStart = useCallback((handType) => {
+    if (scaffoldingLevel === 1 && handType === 'minute') return;
+    setDraggedHand(handType);
+    setIsDragging(true);
+    playChime(440, 0.1);
+  }, [scaffoldingLevel]);
+
+  const handleDragEnd = useCallback((info: PanInfo) => {
+    if (!draggedHand || !clockRef.current) return;
+    
+    const rect = clockRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const angle = Math.atan2(info.point.y - centerY, info.point.x - centerX);
+    const degrees = (angle * 180 / Math.PI + 90 + 360) % 360;
+    
+    let newHour = currentHour;
+    let newMinute = currentMinute;
+    
+    if (draggedHand === 'hour') {
+      const hourFromAngle = Math.round(degrees / 30) % 12 || 12;
+      newHour = hourFromAngle;
+    } else {
+      newMinute = Math.round(degrees / 6) % 60;
+    }
+    
+    onTimeChange?.({ hour: newHour, minute: newMinute, snackTime: false });
+    setIsDragging(false);
+    setDraggedHand(null);
+    playChime(523, 0.2);
+  }, [draggedHand, currentHour, currentMinute, onTimeChange]);
+
+  // Enhanced click handlers for accessibility
+  const handleHandClick = useCallback((handType) => {
+    if (scaffoldingLevel === 1 && handType === 'minute') return;
+    
+    setSelectedHand(selectedHand === handType ? null : handType);
+    setIsHandSelected(selectedHand !== handType);
+    playChime(440, 0.1);
+  }, [selectedHand, scaffoldingLevel]);
+
+  const handleNumberClick = useCallback((number) => {
+    if (!selectedHand) return;
+    
+    let newHour = currentHour;
+    let newMinute = currentMinute;
+    
+    if (selectedHand === 'hour') {
+      newHour = number;
+    } else {
+      newMinute = (number % 12) * 5;
+    }
+    
+    onTimeChange?.({ hour: newHour, minute: newMinute, snackTime: false });
+    setSelectedHand(null);
+    setIsHandSelected(false);
+    playChime(523, 0.2);
+  }, [selectedHand, currentHour, currentMinute, onTimeChange]);
+
+  const playChime = useCallback((frequency = 523.25, duration = 0.3) => {
     if (!soundEnabled) return;
     
     try {
@@ -26,7 +94,6 @@ const ClockFace = ({ currentHour, currentMinute, onTimeChange, soundEnabled = tr
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-
       gain.gain.setValueAtTime(0.03, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
 
@@ -37,371 +104,238 @@ const ClockFace = ({ currentHour, currentMinute, onTimeChange, soundEnabled = tr
     } catch (error) {
       console.log('Audio not available');
     }
-  };
+  }, [soundEnabled]);
 
-  // Check for snack time event
+  // Check for snack time
   useEffect(() => {
     if (isSnackTime(currentHour, currentMinute)) {
-      if (!showSnackTime) { // Only trigger once per snack time
+      if (!showSnackTime) {
         setShowSnackTime(true);
-        playChime(659.25, 0.5); // E5 note for snack time
-        onTimeChange && onTimeChange({ 
-          hour: currentHour, 
-          minute: currentMinute, 
-          snackTime: true 
-        });
-        
-        setTimeout(() => setShowSnackTime(false), 2000);
+        playChime(659.25, 0.5);
+        onTimeChange?.({ hour: currentHour, minute: currentMinute, snackTime: true });
       }
     } else {
       setShowSnackTime(false);
     }
-  }, [currentHour, currentMinute, onTimeChange, soundEnabled, showSnackTime]);
+  }, [currentHour, currentMinute, showSnackTime, playChime, onTimeChange]);
 
-  // Handle hand selection
-  const handleHandClick = (handType) => {
-    setSelectedHand(handType);
-    setIsHandSelected(true);
-    playChime(440, 0.2); // A4 note for selection
-  };
-
-  // Handle number click when hand is selected
-  const handleNumberClick = (number) => {
-    if (!isHandSelected) return;
-    
-    let newHour = currentHour;
-    let newMinute = currentMinute;
-    
-    if (selectedHand === 'hour') {
-      // Convert 12-hour clock to 0-11 format
-      newHour = number === 12 ? 0 : number;
-    } else if (selectedHand === 'minute') {
-      // Convert number to minutes (multiply by 5)
-      newMinute = number * 5;
-      // Update hour proportionally
-      const hourIncrement = newMinute / 60;
-      newHour = currentHour + hourIncrement;
-    }
-    
-    onTimeChange && onTimeChange({
-      hour: newHour,
-      minute: newMinute,
-      snackTime: isSnackTime(newHour, newMinute)
-    });
-    
-    // Reset selection
-    setIsHandSelected(false);
-    setSelectedHand(null);
-    playChime(523.25, 0.3); // C5 note for placement
-  };
-
-  const handleDrag = (event, info) => {
-    if (!clockRef.current) return;
-    
-    const rect = clockRef.current.getBoundingClientRect();
-    const clockCenterX = rect.left + rect.width / 2;
-    const clockCenterY = rect.top + rect.height / 2;
-    
-    const x = info.point.x - clockCenterX;
-    const y = info.point.y - clockCenterY;
-    
-    let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
-    if (angle < 0) angle += 360;
-    
-    const minutes = Math.round(angle / 6) % 60;
-    const hourIncrement = minutes / 60;
-    const newHour = (currentHour + hourIncrement) % 12;
-    
-    onTimeChange && onTimeChange({
-      hour: newHour,
-      minute: minutes,
-      snackTime: isSnackTime(newHour, minutes)
-    });
-  };
-
-  const CarrotHand = ({ angle }) => (
+  // Enhanced clock hands with drag-and-drop
+  const CarrotHand = () => (
     <motion.g
-      animate={{ rotate: angle }}
-      transition={{ type: "spring", stiffness: 50, damping: 20 }}
-      style={{ transformOrigin: `${centerX}px ${centerY}px` }}
-      className="pointer-events-auto cursor-pointer hover:scale-110 transition-transform"
-      onClick={() => handleHandClick('hour')}
-      whileHover={{ scale: 1.1 }}
+      drag={!scaffoldingLevel || scaffoldingLevel > 1}
+      dragMomentum={false}
+      dragElastic={0.1}
+      onDragStart={() => handleDragStart('hour')}
+      onDragEnd={handleDragEnd}
+      animate={{ rotate: hourAngle }}
+      style={{ transformOrigin: '150px 150px' }}
+      whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      className="cursor-pointer"
+      role="button"
+      tabIndex={0}
+      aria-label={`Hour hand pointing to ${currentHour} o'clock`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleHandClick('hour');
+        }
+      }}
     >
-      {/* Carrot (Hour Hand) - Short and thick - positioned from center */}
-      <rect
-        x={centerX - 6}
-        y={centerY - 50}
-        width="12"
-        height="50"
-        fill="#FF8C42"
-        rx="6"
-        className="drop-shadow-md"
+      <line
+        x1="150"
+        y1="150"
+        x2="150"
+        y2="90"
+        stroke="#FF8C42"
+        strokeWidth="8"
+        strokeLinecap="round"
+        className={selectedHand === 'hour' ? 'drop-shadow-lg' : ''}
       />
-      {/* Green leaf at base - centered */}
-      <ellipse
-        cx={centerX}
-        cy={centerY}
-        rx="10"
-        ry="6"
-        fill="#90EE90"
-        opacity="0.8"
-      />
-      {/* Carrot tip */}
-      <circle
-        cx={centerX}
-        cy={centerY - 50}
-        r="6"
-        fill="#FF8C42"
-      />
-      {/* Cute carrot face */}
-      <circle cx={centerX - 2} cy={centerY - 45} r="1" fill="#333" />
-      <circle cx={centerX + 2} cy={centerY - 45} r="1" fill="#333" />
-      <path d={`M ${centerX - 3} ${centerY - 42} Q ${centerX} ${centerY - 40} ${centerX + 3} ${centerY - 42}`} 
-            stroke="#333" strokeWidth="0.5" fill="none" />
+      <circle cx="150" cy="85" r="12" fill="#FF8C42" />
+      <text x="150" y="90" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">🥕</text>
     </motion.g>
   );
 
-  const RabbitHand = ({ angle }) => (
+  const RabbitHand = () => (
     <motion.g
-      animate={{ rotate: angle }}
-      transition={{ type: "spring", stiffness: 50, damping: 20 }}
-      style={{ transformOrigin: `${centerX}px ${centerY}px` }}
-      drag
-      dragElastic={0}
+      drag={scaffoldingLevel !== 1}
       dragMomentum={false}
-      onDrag={handleDrag}
-      onDragStart={() => setIsDragging(true)}
-      onDragEnd={() => setIsDragging(false)}
-      className="cursor-grab active:cursor-grabbing"
-      whileDrag={{ scale: 1.1 }}
-      onClick={() => handleHandClick('minute')}
+      dragElastic={0.1}
+      onDragStart={() => handleDragStart('minute')}
+      onDragEnd={handleDragEnd}
+      animate={{ rotate: minuteAngle }}
+      style={{ transformOrigin: '150px 150px' }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      className={`cursor-pointer ${scaffoldingLevel === 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
+      role="button"
+      tabIndex={scaffoldingLevel === 1 ? -1 : 0}
+      aria-label={`Minute hand pointing to ${currentMinute} minutes`}
+      aria-disabled={scaffoldingLevel === 1}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (scaffoldingLevel !== 1) handleHandClick('minute');
+        }
+      }}
     >
-      {/* Rabbit (Minute Hand) - Long and thin - positioned from center */}
-      <rect
-        x={centerX - 3}
-        y={centerY - 90}
-        width="6"
-        height="90"
-        fill="#E6E6FA"
-        rx="3"
-        className="drop-shadow-md"
+      <line
+        x1="150"
+        y1="150"
+        x2="150"
+        y2="60"
+        stroke="#F472B6"
+        strokeWidth="6"
+        strokeLinecap="round"
+        className={selectedHand === 'minute' ? 'drop-shadow-lg' : ''}
       />
-      {/* Rabbit ears at tip */}
-      <ellipse
-        cx={centerX - 2}
-        cy={centerY - 90}
-        rx="2"
-        ry="6"
-        fill="#E6E6FA"
-        transform={`rotate(-10 ${centerX - 2} ${centerY - 90})`}
-      />
-      <ellipse
-        cx={centerX + 2}
-        cy={centerY - 90}
-        rx="2"
-        ry="6"
-        fill="#E6E6FA"
-        transform={`rotate(10 ${centerX + 2} ${centerY - 90})`}
-      />
-      {/* Rabbit face at tip */}
-      <circle
-        cx={centerX}
-        cy={centerY - 90}
-        r="4"
-        fill="#E6E6FA"
-      />
-      {/* Cute rabbit face */}
-      <circle cx={centerX - 1.5} cy={centerY - 90} r="0.8" fill="#FF69B4" />
-      <circle cx={centerX + 1.5} cy={centerY - 90} r="0.8" fill="#FF69B4" />
-      <circle cx={centerX} cy={centerY - 88} r="0.5" fill="#FF69B4" />
-      {/* Pink nose */}
+      <circle cx="150" cy="55" r="10" fill="#F472B6" />
+      <text x="150" y="60" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">🐰</text>
     </motion.g>
   );
 
   return (
-    <motion.div
+    <div 
       ref={clockRef}
-      className={`relative ${showSnackTime ? 'animate-pulse-gentle' : ''}`}
-      animate={showSnackTime ? { scale: [1, 1.1, 1] } : {}}
-      transition={{ duration: 0.6 }}
+      className="relative"
+      role="application"
+      aria-label={ariaLabel}
     >
-      <svg width="300" height="300" className="drop-shadow-xl">
-        {/* Cute themed background pattern */}
-        <defs>
-          <pattern id="carrotPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-            <circle cx="20" cy="20" r="3" fill="#FFE4B5" opacity="0.3" />
-            <path d="M 15 20 Q 20 15 25 20" stroke="#FF8C42" strokeWidth="1" fill="none" opacity="0.3" />
-          </pattern>
-          <pattern id="rabbitPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-            <circle cx="20" cy="20" r="2" fill="#E6E6FA" opacity="0.3" />
-            <ellipse cx="18" cy="18" rx="1" ry="2" fill="#E6E6FA" opacity="0.3" />
-            <ellipse cx="22" cy="18" rx="1" ry="2" fill="#E6E6FA" opacity="0.3" />
-          </pattern>
-        </defs>
-        
-        {/* Clock Face with cute theme */}
+      <svg width="300" height="300" viewBox="0 0 300 300" className="drop-shadow-xl">
+        {/* Clock face with enhanced accessibility */}
         <circle
-          cx={centerX}
-          cy={centerY}
-          r={clockRadius}
-          fill="#FFF8DC"
-          stroke="#FFB6C1"
+          cx="150"
+          cy="150"
+          r="140"
+          fill="white"
+          stroke="#FB923C"
           strokeWidth="4"
         />
         
         {/* Decorative carrot border */}
         {[...Array(12)].map((_, i) => {
-          const angle = (i * 30) * (Math.PI / 180);
-          const x = centerX + Math.cos(angle) * (clockRadius - 15);
-          const y = centerY + Math.sin(angle) * (clockRadius - 15);
-          
+          const angle = (i * 30 - 90) * Math.PI / 180;
+          const x = 150 + Math.cos(angle) * 130;
+          const y = 150 + Math.sin(angle) * 130;
           return (
-            <g key={`carrot-${i}`}>
-              <circle cx={x} cy={y} r="4" fill="#FF8C42" opacity="0.6" />
-              <path d={`M ${x - 2} ${y - 2} Q ${x} ${y - 4} ${x + 2} ${y - 2}`} 
-                    stroke="#90EE90" strokeWidth="1" fill="none" />
-            </g>
+            <text
+              key={`carrot-${i}`}
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="12"
+              fill="#FF8C42"
+            >
+              🥕
+            </text>
           );
         })}
-        
-        {/* Hour markers with cute design */}
+
+        {/* Hour markers with better contrast */}
         {[...Array(12)].map((_, i) => {
-          const angle = (i * 30 - 90) * (Math.PI / 180);
-          const x1 = centerX + Math.cos(angle) * (clockRadius - 10);
-          const y1 = centerY + Math.sin(angle) * (clockRadius - 10);
-          const x2 = centerX + Math.cos(angle) * (clockRadius - 20);
-          const y2 = centerY + Math.sin(angle) * (clockRadius - 20);
+          const angle = (i * 30) * Math.PI / 180;
+          const x1 = 150 + Math.cos(angle) * 120;
+          const y1 = 150 + Math.sin(angle) * 120;
+          const x2 = 150 + Math.cos(angle) * 110;
+          const y2 = 150 + Math.sin(angle) * 110;
           
           return (
-            <g key={`marker-${i}`}>
-              <line
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
-                stroke="#FF69B4"
-                strokeWidth={i % 3 === 0 ? 4 : 2}
-                strokeLinecap="round"
-              />
-              {i % 3 === 0 && (
-                <circle cx={x1} cy={y1} r="3" fill="#FFB6C1" />
-              )}
-            </g>
+            <line
+              key={`marker-${i}`}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="#1F2937"
+              strokeWidth={i % 3 === 0 ? "3" : "2"}
+            />
           );
         })}
-        
-        {/* Numbers with click functionality */}
+
+        {/* Numbers with enhanced accessibility */}
         {[12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((num, i) => {
-          const angle = (i * 30 - 90) * (Math.PI / 180);
-          const x = centerX + Math.cos(angle) * (clockRadius - 35);
-          const y = centerY + Math.sin(angle) * (clockRadius - 35);
+          const angle = (i * 30 - 90) * Math.PI / 180;
+          const x = 150 + Math.cos(angle) * 95;
+          const y = 150 + Math.sin(angle) * 95;
           
           return (
-            <g key={num} className="cursor-pointer" onClick={() => handleNumberClick(num)}>
+            <g key={`number-${num}`}>
               <circle
                 cx={x}
                 cy={y}
                 r="18"
-                fill={isHandSelected ? "#FFE4E1" : "#FFF"}
-                stroke={isHandSelected ? "#FF69B4" : "#FFB6C1"}
+                fill={selectedHand ? "#FEF3C7" : "white"}
+                stroke={selectedHand ? "#FB923C" : "#FDBA74"}
                 strokeWidth="2"
-                className="hover:fill-pink-100 transition-colors"
+                className="cursor-pointer hover:fill-yellow-100 transition-colors"
+                onClick={() => handleNumberClick(num)}
+                role="button"
+                tabIndex={selectedHand ? 0 : -1}
+                aria-label={`Set time to ${num}`}
+                aria-disabled={!selectedHand}
               />
               <text
                 x={x}
-                y={y + 6}
+                y={y}
                 textAnchor="middle"
-                fill="#FF1493"
-                fontSize="16"
+                dominantBaseline="middle"
+                fontSize="20"
                 fontWeight="bold"
-                className="select-none font-rounded pointer-events-none"
+                fill="#1F2937"
+                className="pointer-events-none select-none"
               >
                 {num}
               </text>
-              {/* Cute decorations around numbers */}
-              {num === 12 && (
-                <text x={x} y={y - 8} textAnchor="middle" fontSize="12">🥕</text>
-              )}
-              {num === 6 && (
-                <text x={x} y={y - 8} textAnchor="middle" fontSize="12">🐰</text>
-              )}
             </g>
           );
         })}
-        
-        {/* Center dot with cute design */}
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r="10"
-          fill="#FFB6C1"
-          stroke="#FF69B4"
-          strokeWidth="2"
-        />
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r="6"
-          fill="#FFF"
-        />
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r="3"
-          fill="#FF69B4"
-        />
-        
-        {/* Clock Hands */}
-        <CarrotHand angle={hourAngle} />
-        <RabbitHand angle={minuteAngle} />
+
+        {/* Enhanced clock hands */}
+        <CarrotHand />
+        <RabbitHand />
+
+        {/* Center pivot */}
+        <circle cx="150" cy="150" r="8" fill="#1F2937" />
+        <circle cx="150" cy="150" r="5" fill="#FF8C42" />
       </svg>
-      
-      {/* Selection indicator */}
+
+      {/* Visual feedback for selected hand */}
       {isHandSelected && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute top-0 left-0 w-full h-full pointer-events-none flex items-center justify-center bg-white/30 rounded-full"
+          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold"
         >
-          <div className="bg-white/90 px-4 py-2 rounded-full text-sm font-bold text-pink-500 shadow-lg border-2 border-pink-300">
-            {selectedHand === 'hour' ? '🥕 Click a number!' : '🐰 Click a number!'}
-          </div>
-        </motion.div>
-      )}
-      
-      {/* Snack Time Indicator */}
-      {showSnackTime && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-pink-100 px-6 py-3 rounded-full text-pink-600 font-bold text-sm shadow-lg border-2 border-pink-300"
-        >
-          🥕🐰 Snack Time! 🥕🐰
+          Click a number to set {selectedHand === 'hour' ? 'hour' : 'minute'}! 🎯
         </motion.div>
       )}
 
-      {/* Drag indicator */}
-      {isDragging && (
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none flex items-center justify-center">
-          <div className="bg-white/80 px-4 py-2 rounded-full text-xs font-bold text-pink-500 shadow-lg border border-pink-300">
-            🐰 Dragging Rabbit...
-          </div>
-        </div>
+      {/* Scaffolding indicator */}
+      {scaffoldingLevel === 1 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold"
+        >
+          🏗️ Scaffolding Mode: Hour Hand Only
+        </motion.div>
       )}
-      
-      {/* Instructions */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-pink-50 px-4 py-2 rounded-full text-xs text-pink-600 text-center max-w-xs"
-      >
-        Click 🥕 carrot or 🐰 rabbit, then click a number!
-      </motion.div>
-    </motion.div>
+
+      {/* Snack time celebration */}
+      {showSnackTime && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        >
+          <div className="text-6xl font-bold text-orange-600 animate-pulse">
+            🥕🐰 Snack Time! 🥕🐰
+          </div>
+        </motion.div>
+      )}
+    </div>
   );
 };
 
