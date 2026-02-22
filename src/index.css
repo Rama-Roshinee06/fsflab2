@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+  .bg-vanilla-cream {
+    background-color: #FDFCF0;
+  }
+  .bg-pale-mint {
+    background-color: #E8F5E9;
+  }
+  .bg-soft-peach {
+    background-color: #FFD2A0;
+  }
+  .bg-periwinkle {
+    background-color: #B8C1EC;
+  }
+  .text-slate-blue {
+    color: #455A64;
+  }
+  .font-rounded {
+    font-family: 'Fredoka', 'Nunito', sans-serif;
+  }
+}

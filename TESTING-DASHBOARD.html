@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Garden of Time - Testing Dashboard</title>
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FEF9C3 100%);
+            margin: 0;
+            padding: 20px;
+            color: #1F2937;
+        }
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(251, 146, 60, 0.3);
+            border: 3px solid #FB923C;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #FB923C, #F97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #FEF3C7;
+            border-radius: 15px;
+            border: 2px solid #FDBA74;
+        }
+        .test-section h2 {
+            color: #F97316;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #FDBA74;
+        }
+        .test-item input[type="checkbox"] {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            accent-color: #FB923C;
+        }
+        .test-item label {
+            flex: 1;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .test-item .status {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pass { color: #10B981; }
+        .status.fail { color: #EF4444; }
+        .status.pending { color: #F59E0B; }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #FB923C, #F97316);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.4);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #E5E7EB;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #FB923C, #F97316);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .instructions {
+            background: #FEF9C3;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #FDE047;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            color: #F97316;
+            margin-bottom: 10px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        .feature-highlight {
+            background: linear-gradient(135deg, #F9A8D4, #FDE047);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px solid #F472B6;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🧪 Enhanced Garden of Time Testing Dashboard</h1>
+            <p>Comprehensive testing for all new neurodivergent learning features</p>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How to Use This Dashboard:</h3>
+            <ol>
+                <li>Open your Garden of Time app at <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+                <li>Keep this dashboard open in a separate tab</li>
+                <li>Test each feature in your app</li>
+                <li>Check the corresponding checkbox when the feature works</li>
+                <li>Watch your progress bar fill up!</li>
+            </ol>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%">
+                0% Complete
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="test-button" onclick="resetTests()">🔄 Reset Tests</button>
+            <button class="test-button" onclick="exportResults()">📊 Export Results</button>
+            <button class="test-button" onclick="openApp()">🚀 Open App</button>
+        </div>
+
+        <!-- Multi-Modal Learning Features -->
+        <div class="test-section">
+            <h2>🎮 Multi-Modal Learning Features</h2>
+            
+            <div class="feature-highlight">
+                <strong>🎯 Learning Modes (Top Right Panel)</strong>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="freeplay-mode" onchange="updateProgress()">
+                <label for="freeplay-mode">🎮 Free Play Mode - Unrestricted practice</label>
+                <span class="status pending" id="freeplay-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="sequencing-mode" onchange="updateProgress()">
+                <label for="sequencing-mode">📈 Sequencing Mode - Shows "Step 1/4" progression</label>
+                <span class="status pending" id="sequencing-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="scaffolding-mode" onchange="updateProgress()">
+                <label for="scaffolding-mode">🏗️ Scaffolding Mode - Shows "Level 1" restrictions</label>
+                <span class="status pending" id="scaffolding-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="sequencing-progression" onchange="updateProgress()">
+                <label for="sequencing-progression">📈 Sequencing Progression - Hours → Half-hours → Quarters → Exact</label>
+                <span class="status pending" id="sequencing-progression-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="scaffolding-restrictions" onchange="updateProgress()">
+                <label for="scaffolding-restrictions">🏗️ Scaffolding Restrictions - Level 1 disables minute hand</label>
+                <span class="status pending" id="scaffolding-restrictions-status">⏳ Pending</span>
+            </div>
+        </div>
+
+        <!-- Keyboard Events -->
+        <div class="test-section">
+            <h2>⌨️ Keyboard Events</h2>
+            
+            <div class="feature-highlight">
+                <strong>🎹 Test these keyboard shortcuts in your app:</strong>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="spacebar-toggle" onchange="updateProgress()">
+                <label for="spacebar-toggle">Spacebar - Toggle between Analog/Digital/Both views</label>
+                <span class="status pending" id="spacebar-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="s-timer" onchange="updateProgress()">
+                <label for="s-timer">S key - Start 60-second sand timer</label>
+                <span class="status pending" id="s-timer-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="m-mode" onchange="updateProgress()">
+                <label for="m-mode">M key - Cycle through learning modes</label>
+                <span class="status pending" id="m-mode-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="ctrl-c-capture" onchange="updateProgress()">
+                <label for="ctrl-c-capture">Ctrl+C - Capture progress screenshot</label>
+                <span class="status pending" id="ctrl-c-capture-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="number-keys" onchange="updateProgress()">
+                <label for="number-keys">Number Keys (0-9) - Digital input in Digital/Both view</label>
+                <span class="status pending" id="number-keys-status">⏳ Pending</span>
+            </div>
+        </div>
+
+        <!-- Enhanced Clock Interactions -->
+        <div class="test-section">
+            <h2>🎯 Enhanced Clock Interactions</h2>
+            
+            <div class="feature-highlight">
+                <strong>🕐 Test clock hand interactions:</strong>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="drag-hour" onchange="updateProgress()">
+                <label for="drag-hour">🥕 Drag Hour Hand (Carrot) - Smooth dragging to any position</label>
+                <span class="status pending" id="drag-hour-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="drag-minute" onchange="updateProgress()">
+                <label for="drag-minute">🐰 Drag Minute Hand (Rabbit) - Smooth dragging to any position</label>
+                <span class="status pending" id="drag-minute-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="click-hand" onchange="updateProgress()">
+                <label for="click-hand">👆 Click Hand - Click carrot/rabbit to select</label>
+                <span class="status pending" id="click-hand-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="click-number" onchange="updateProgress()">
+                <label for="click-number">🔢 Click Number - Selected hand moves to clicked number</label>
+                <span class="status pending" id="click-number-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="precision-alignment" onchange="updateProgress()">
+                <label for="precision-alignment">🎯 Precision Alignment - Hands align correctly with numbers</label>
+                <span class="status pending" id="precision-alignment-status">⏳ Pending</span>
+            </div>
+        </div>
+
+        <!-- Visual Support Features -->
+        <div class="test-section">
+            <h2>🏖️ Visual Support Features</h2>
+            
+            <div class="feature-highlight">
+                <strong>👁️ Visual aids and supports:</strong>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="sand-timer" onchange="updateProgress()">
+                <label for="sand-timer">⏳ Sand Timer - 60-second countdown with progress bar</label>
+                <span class="status pending" id="sand-timer-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="24hour-mode" onchange="updateProgress()">
+                <label for="24hour-mode">🕐 24-Hour Mode - Toggle button in challenge section</label>
+                <span class="status pending" id="24hour-mode-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="daily-events" onchange="updateProgress()">
+                <label for="daily-events">📅 Daily Events - Shows "🌅 Wake Up" for 7AM, etc.</label>
+                <span class="status pending" id="daily-events-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="progress-capture" onchange="updateProgress()">
+                <label for="progress-capture">📸 Progress Capture - Screenshot download functionality</label>
+                <span class="status pending" id="progress-capture-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="view-modes" onchange="updateProgress()">
+                <label for="view-modes">👁️ View Modes - Analog/Digital/Both (Top Left Panel)</label>
+                <span class="status pending" id="view-modes-status">⏳ Pending</span>
+            </div>
+        </div>
+
+        <!-- Accessibility Features -->
+        <div class="test-section">
+            <h2>♿ Accessibility Features</h2>
+            
+            <div class="feature-highlight">
+                <strong>🎯 Accessibility for neurodivergent learners:</strong>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="aria-labels" onchange="updateProgress()">
+                <label for="aria-labels">🔊 ARIA Labels - All interactive elements have descriptions</label>
+                <span class="status pending" id="aria-labels-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="keyboard-nav" onchange="updateProgress()">
+                <label for="keyboard-nav">⌨️ Keyboard Navigation - Tab through all elements</label>
+                <span class="status pending" id="keyboard-nav-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="focus-indicators" onchange="updateProgress()">
+                <label for="focus-indicators">🎯 Focus Indicators - Clear visual focus on all buttons</label>
+                <span class="status pending" id="focus-indicators-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="motor-skill-support" onchange="updateProgress()">
+                <label for="motor-skill-support">🖱️ Motor Skill Support - Large click targets, drag alternatives</label>
+                <span class="status pending" id="motor-skill-support-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="visual-feedback" onchange="updateProgress()">
+                <label for="visual-feedback">✨ Visual Feedback - Clear hover and selection states</label>
+                <span class="status pending" id="visual-feedback-status">⏳ Pending</span>
+            </div>
+        </div>
+
+        <!-- Advanced Logic -->
+        <div class="test-section">
+            <h2>🧠 Advanced Logic</h2>
+            
+            <div class="feature-highlight">
+                <strong>🎯 Intelligent learning algorithms:</strong>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="adaptive-difficulty" onchange="updateProgress()">
+                <label for="adaptive-difficulty">📈 Adaptive Difficulty - Adjusts based on performance</label>
+                <span class="status pending" id="adaptive-difficulty-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="performance-tracking" onchange="updateProgress()">
+                <label for="performance-tracking">📊 Performance Tracking - Success rate, streaks, trends</label>
+                <span class="status pending" id="performance-tracking-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="pedagogical-feedback" onchange="updateProgress()">
+                <label for="pedagogical-feedback">💬 Pedagogical Feedback - Contextual hints and next steps</label>
+                <span class="status pending" id="pedagogical-feedback-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="state-management" onchange="updateProgress()">
+                <label for="state-management">🔄 State Management - Mode switches maintain correct state</label>
+                <span class="status pending" id="state-management-status">⏳ Pending</span>
+            </div>
+            
+            <div class="test-item">
+                <input type="checkbox" id="error-handling" onchange="updateProgress()">
+                <label for="error-handling">🛡️ Error Handling - Graceful handling of invalid inputs</label>
+                <span class="status pending" id="error-handling-status">⏳ Pending</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="test-button" onclick="resetTests()">🔄 Reset Tests</button>
+            <button class="test-button" onclick="exportResults()">📊 Export Results</button>
+            <button class="test-button" onclick="openApp()">🚀 Open App</button>
+        </div>
+    </div>
+
+    <script>
+        let totalTests = 0;
+        let passedTests = 0;
+
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            totalTests = checkboxes.length;
+            passedTests = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            
+            const percentage = Math.round((passedTests / totalTests) * 100);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '% Complete';
+            
+            // Update status indicators
+            checkboxes.forEach(checkbox => {
+                const statusElement = document.getElementById(checkbox.id + '-status');
+                if (checkbox.checked) {
+                    statusElement.textContent = '✅ Pass';
+                    statusElement.className = 'status pass';
+                } else {
+                    statusElement.textContent = '⏳ Pending';
+                    statusElement.className = 'status pending';
+                }
+            });
+            
+            // Celebration for 100%
+            if (percentage === 100) {
+                progressBar.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+                progressBar.textContent = '🎉 100% Complete! All Features Working!';
+            }
+        }
+
+        function resetTests() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateProgress();
+            
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.background = 'linear-gradient(135deg, #FB923C, #F97316)';
+        }
+
+        function exportResults() {
+            const results = [];
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                results.push({
+                    feature: checkbox.nextElementSibling.textContent,
+                    passed: checkbox.checked,
+                    status: checkbox.checked ? 'PASS' : 'FAIL'
+                });
+            });
+            
+            const resultsText = JSON.stringify(results, null, 2);
+            const blob = new Blob([resultsText], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `garden-of-time-test-results-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function openApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        // Initialize progress on load
+        updateProgress();
+    </script>
+</body>
+</html>
