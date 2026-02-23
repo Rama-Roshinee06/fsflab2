@@ -390,114 +390,154 @@ function App() {
         {/* Other existing background elements... */}
       </div>
 
-      {/* NEW: Learning Mode Controls */}
+      {/* ENHANCED: Unified Left Sidebar with All Controls */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="fixed top-4 right-4 z-30 bg-white/90 backdrop-blur-lg rounded-2xl p-4 shadow-2xl border-4 border-orange-300"
+        initial={{ x: -300 }}
+        animate={{ x: 0 }}
+        className="fixed left-0 top-0 h-full w-80 bg-white/90 backdrop-blur-lg shadow-2xl z-20 overflow-y-auto border-r-4 border-orange-300"
       >
-        <h3 className="text-lg font-bold mb-3 text-orange-600">🎯 Learning Mode</h3>
-        <div className="space-y-2">
-          <button
-            onClick={() => setLearningMode('freeplay')}
-            className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-              learningMode === 'freeplay' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-            aria-label="Free Play Mode - Practice freely"
-          >
-            🎮 Free Play
-          </button>
-          <button
-            onClick={() => setLearningMode('sequencing')}
-            className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-              learningMode === 'sequencing' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-            aria-label="Sequencing Mode - Progressive learning"
-          >
-            📈 Sequencing (Step {sequencingStep}/4)
-          </button>
-          <button
-            onClick={() => setLearningMode('scaffolding')}
-            className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-              learningMode === 'scaffolding' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-            aria-label="Scaffolding Mode - Guided learning"
-          >
-            🏗️ Scaffolding (Level {scaffoldingLevel})
-          </button>
-        </div>
-      </motion.div>
-
-      {/* NEW: Sand Timer */}
-      {showSandTimer && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-30 bg-white/95 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border-4 border-yellow-400"
-          ref={sandTimerRef}
-        >
-          <h3 className="text-lg font-bold mb-3 text-yellow-600">⏳ Sand Timer</h3>
-          <div className="text-4xl font-bold text-orange-600 mb-2">
-            {Math.floor(sandTimerSeconds / 60)}:{(sandTimerSeconds % 60).toString().padStart(2, '0')}
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-2 text-purple-600 flex items-center justify-center">
+              📚 Control Panel 📚
+            </h2>
           </div>
-          <div className="w-48 h-4 bg-gray-200 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-yellow-400 to-orange-500"
-              initial={{ width: '100%' }}
-              animate={{ width: '0%' }}
-              transition={{ duration: sandTimerSeconds, ease: 'linear' }}
-            />
-          </div>
-        </motion.div>
-      )}
 
-      {/* NEW: View Mode Toggle */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="fixed top-4 left-4 z-30 bg-white/90 backdrop-blur-lg rounded-2xl p-4 shadow-2xl border-4 border-orange-300"
-      >
-        <h3 className="text-lg font-bold mb-3 text-orange-600">👁️ View Mode</h3>
-        <div className="space-y-2">
-          <button
-            onClick={() => setViewMode('analog')}
-            className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-              viewMode === 'analog' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-            aria-label="Analog Clock View"
-          >
-            🕐 Analog
-          </button>
-          <button
-            onClick={() => setViewMode('digital')}
-            className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-              viewMode === 'digital' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-            aria-label="Digital Clock View"
-          >
-            🔢 Digital
-          </button>
-          <button
-            onClick={() => setViewMode('both')}
-            className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-              viewMode === 'both' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-            aria-label="Both Analog and Digital Views"
-          >
-            🔄 Both
-          </button>
+          {/* Learning Modes Section */}
+          <div className="mb-6 bg-gradient-to-r from-yellow-100 to-orange-100 p-4 rounded-2xl border-2 border-orange-300">
+            <h3 className="text-lg font-bold mb-3 text-orange-600">🎯 Learning Modes</h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => setLearningMode('freeplay')}
+                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                  learningMode === 'freeplay' 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+                aria-label="Free Play Mode - Practice freely"
+              >
+                🎮 Free Play
+              </button>
+              <button
+                onClick={() => setLearningMode('sequencing')}
+                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                  learningMode === 'sequencing' 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+                aria-label="Sequencing Mode - Progressive learning"
+              >
+                📈 Sequencing (Step {sequencingStep}/4)
+              </button>
+              <button
+                onClick={() => setLearningMode('scaffolding')}
+                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                  learningMode === 'scaffolding' 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+                aria-label="Scaffolding Mode - Guided learning"
+              >
+                🏗️ Scaffolding (Level {scaffoldingLevel})
+              </button>
+            </div>
+            <div className="mt-3 text-xs text-gray-600">
+              <div><strong>Current:</strong> {learningMode}</div>
+              <div><strong>Step:</strong> {sequencingStep}/4</div>
+              <div><strong>Level:</strong> {scaffoldingLevel}</div>
+            </div>
+          </div>
+
+          {/* View Modes Section */}
+          <div className="mb-6 bg-gradient-to-r from-green-100 to-blue-100 p-4 rounded-2xl border-2 border-green-300">
+            <h3 className="text-lg font-bold mb-3 text-green-600">👁️ View Modes</h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => setViewMode('analog')}
+                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                  viewMode === 'analog' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+                aria-label="Analog Clock View"
+              >
+                🕐 Analog
+              </button>
+              <button
+                onClick={() => setViewMode('digital')}
+                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                  viewMode === 'digital' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+                aria-label="Digital Clock View"
+              >
+                🔢 Digital
+              </button>
+              <button
+                onClick={() => setViewMode('both')}
+                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                  viewMode === 'both' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+                aria-label="Both Analog and Digital Views"
+              >
+                🔄 Both
+              </button>
+            </div>
+            <div className="mt-3 text-xs text-gray-600">
+              <div><strong>Current:</strong> {viewMode}</div>
+            </div>
+          </div>
+
+          {/* Keyboard Shortcuts */}
+          <div className="mb-6 bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-2xl border-2 border-purple-300">
+            <h3 className="text-lg font-bold mb-3 text-purple-600">⌨️ Keyboard Shortcuts</h3>
+            <div className="space-y-1 text-xs">
+              <div><kbd>Space</kbd> - Toggle View Mode</div>
+              <div><kbd>S</kbd> - Start Sand Timer</div>
+              <div><kbd>M</kbd> - Change Learning Mode</div>
+              <div><kbd>Ctrl+C</kbd> - Capture Progress</div>
+              <div><kbd>0-9</kbd> - Digital Input</div>
+            </div>
+          </div>
+
+          {/* Clock Basics */}
+          <div className="mb-6 bg-gradient-to-r from-yellow-100 to-orange-100 p-4 rounded-2xl border-2 border-orange-300">
+            <h3 className="text-lg font-bold mb-3 text-orange-600">🕐 Clock Basics</h3>
+            <div className="space-y-2 text-sm">
+              <p className="flex items-start">
+                <span className="text-2xl mr-2">🥕</span>
+                <span><strong>Carrot Hand</strong> = Hour hand (short and fat)</span>
+              </p>
+              <p className="flex items-start">
+                <span className="text-2xl mr-2">🐰</span>
+                <span><strong>Rabbit Hand</strong> = Minute hand (long and thin)</span>
+              </p>
+              <p className="flex items-start">
+                <span className="text-2xl mr-2">⏰</span>
+                <span><strong>Big Numbers</strong> = Hours (1-12)</span>
+              </p>
+              <p className="flex items-start">
+                <span className="text-2xl mr-2">🎯</span>
+                <span><strong>Click Hand</strong> then <strong>Click Number</strong></span>
+              </p>
+            </div>
+          </div>
+
+          {/* Current Status */}
+          <div className="mb-6 bg-gradient-to-r from-blue-100 to-purple-100 p-4 rounded-2xl border-2 border-blue-300">
+            <h3 className="text-lg font-bold mb-3 text-blue-600">📊 Current Status</h3>
+            <div className="space-y-2 text-sm">
+              <div><strong>Seeds:</strong> {seedsCollected} 🥕</div>
+              <div><strong>Flowers:</strong> {snackTimesUnlocked} 🌸</div>
+              <div><strong>Level:</strong> {currentLevel}</div>
+              <div><strong>Sound:</strong> {soundEnabled ? '🔊 On' : '🔇 Off'}</div>
+              <div><strong>24H:</strong> {is24HourMode ? '🕐 On' : '🕐 Off'}</div>
+            </div>
+          </div>
         </div>
       </motion.div>
 
@@ -546,62 +586,7 @@ function App() {
         📸 Capture My Progress
       </motion.button>
 
-      {/* Existing Learning Sidebar */}
-      <motion.div
-        initial={{ x: -300 }}
-        animate={{ x: 0 }}
-        className="fixed left-0 top-0 h-full w-80 bg-white/90 backdrop-blur-lg shadow-2xl z-20 overflow-y-auto border-r-4 border-pink-300"
-      >
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-6 text-purple-600 flex items-center">
-            📚 Learning Corner 📚
-          </h2>
-          
-          {/* Enhanced with new learning modes info */}
-          <div className="mb-6 bg-gradient-to-r from-yellow-100 to-orange-100 p-4 rounded-2xl border-2 border-orange-300">
-            <h3 className="text-lg font-bold mb-3 text-orange-600">🎯 Current Mode</h3>
-            <div className="space-y-2 text-sm">
-              <p><strong>Mode:</strong> {learningMode}</p>
-              <p><strong>Step:</strong> {sequencingStep}/4</p>
-              <p><strong>Scaffolding:</strong> Level {scaffoldingLevel}</p>
-              <p><strong>View:</strong> {viewMode}</p>
-            </div>
-          </div>
-
-          {/* Existing learning content... */}
-          <div className="mb-6 bg-gradient-to-r from-yellow-100 to-orange-100 p-4 rounded-2xl border-2 border-orange-300">
-            <h3 className="text-lg font-bold mb-3 text-orange-600">🕐 Clock Basics</h3>
-            <div className="space-y-2 text-sm">
-              <p className="flex items-start">
-                <span className="text-2xl mr-2">🥕</span>
-                <span><strong>Carrot Hand</strong> = Hour hand (short and fat)</span>
-              </p>
-              <p className="flex items-start">
-                <span className="text-2xl mr-2">🐰</span>
-                <span><strong>Rabbit Hand</strong> = Minute hand (long and thin)</span>
-              </p>
-              <p className="flex items-start">
-                <span className="text-2xl mr-2">⏰</span>
-                <span><strong>Big Numbers</strong> = Hours (1-12)</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Keyboard shortcuts */}
-          <div className="mb-6 bg-gradient-to-r from-green-100 to-blue-100 p-4 rounded-2xl border-2 border-green-300">
-            <h3 className="text-lg font-bold mb-3 text-green-600">⌨️ Keyboard Shortcuts</h3>
-            <div className="space-y-1 text-xs">
-              <p><kbd>Space</kbd> - Toggle View Mode</p>
-              <p><kbd>S</kbd> - Start Sand Timer</p>
-              <p><kbd>M</kbd> - Change Learning Mode</p>
-              <p><kbd>Ctrl+C</kbd> - Capture Progress</p>
-              <p><kbd>0-9</kbd> - Digital Input</p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Existing Main Content */}
+      {/* Main Content - Updated for Unified Sidebar */}
       <div className="ml-80 min-h-screen pl-8 pr-8">
         <header className="text-center py-8 px-4">
           <motion.h1 
