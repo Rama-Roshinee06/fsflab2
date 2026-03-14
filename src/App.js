@@ -594,7 +594,7 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             className="text-6xl font-bold mb-4 bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent"
           >
-            🏖️🥕🐰 Garden of Time 🥕🐰🏖️
+            ️Garden of Time 
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}
