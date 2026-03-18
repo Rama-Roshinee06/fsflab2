@@ -206,13 +206,15 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Clock learning API server running on port ${PORT}`);
-  console.log(`Available endpoints:`);
+  console.log(`🚀 Clock learning API server running on port ${PORT}`);
+  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Available endpoints:`);
   console.log(`  GET  /api/generate-time - Generate random time`);
   console.log(`  POST /api/submit-answer - Validate time answer`);
   console.log(`  GET  /api/time-challenges - Get multiple challenges`);
   console.log(`  POST /api/save-progress - Save user progress`);
   console.log(`  GET  /api/health - Health check`);
+  console.log(`🌐 Server ready for requests!`);
 });
 
 module.exports = app;

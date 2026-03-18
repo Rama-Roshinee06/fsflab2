@@ -1,16 +1,21 @@
 {
-  "name": "backend",
+  "name": "garden-of-time-api",
   "version": "1.0.0",
+  "description": "Backend API for Garden of Time learning application",
   "main": "clock-api.js",
   "scripts": {
+    "start": "node clock-api.js",
+    "dev": "node clock-api.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["api", "education", "learning", "clock", "time"],
+  "author": "Rama Roshinee",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
